@@ -1106,7 +1106,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var d = parseD(debtEl.value);
     incEl.style.setProperty('--p', ((income - 20000) / 480000 * 100) + '%');
     if (incOutEl) incOutEl.textContent = fmt(income);
-    var cInc = income * term;
+    var cInc = income * 11;
     var cDep = 50000 * deps;
     var cov = cInc + d + cDep;
     var m = mult[term] || 1;
