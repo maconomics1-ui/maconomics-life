@@ -1008,7 +1008,7 @@ var dots=$$('#dots span'),di=0;
 setInterval(function(){if(reduce||document.hidden)return;dots.forEach(function(d,j){d.classList.toggle('hi',j===di)});di=(di+1)%3},1200);
 dots[0].classList.add('hi');
 
-/* ---- CALCULATOR placeholder — moved to own script tag below ---- */
+/* calculator moved to standalone script at end of body */
 
 /* lazy-load embeds when near viewport */
 var eio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.src=e.target.getAttribute('data-src');eio.unobserve(e.target)}})},{rootMargin:'600px'});
@@ -1061,47 +1061,102 @@ renderFaq('');$('#fsearch').addEventListener('input',function(){renderFaq(this.v
 })();
 </script>
 <script>
-/* ---- CALCULATOR ---- */
-(function(){
-  var deps=2,term=20,mult={10:.7,15:.85,20:1,25:1.2,30:1.4};
-  var reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  var fmt=function(n){return '$'+Math.round(n).toLocaleString('en-US')};
-  var el=function(id){return document.getElementById(id)};
-  var incEl=el('inc'),debtEl=el('debt'),kidsEl=el('kids');
-  if(!incEl){console.error('Calculator: #inc not found');return;}
-  var shown={cov:0};
-  function parseD(v){return parseInt(String(v).replace(/[^0-9]/g,''),10)||0}
-  function tween(target,to,key){var from=shown[key]||0;shown[key]=to;if(!target)return;if(reduce){target.textContent=fmt(to);return}
-    var t0=performance.now();(function f(n){var p=Math.min(1,(n-t0)/450),e=1-Math.pow(1-p,3);target.textContent=fmt(from+(to-from)*e);if(p<1)requestAnimationFrame(f)})(t0)}
-  function kidIcons(){kidsEl.innerHTML='';for(var i=0;i<deps;i++)kidsEl.insertAdjacentHTML('beforeend','<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="4"/><path d="M4 22c0-5 3.6-8 8-8s8 3 8 8z"/></svg>')}
-  function calc(){
-    var income=+incEl.value,d=parseD(debtEl.value);
-    incEl.style.setProperty('--p',((income-20000)/480000*100)+'%');
-    el('incOut').textContent=fmt(income);
-    var cInc=income*term,cDep=50000*deps,cov=cInc+d+cDep,m=mult[term]||1;
-    var lo=Math.round(cov/1e6*28*m),hi=Math.round(cov/1e6*52*m);
-    tween(el('cov'),cov,'cov');
-    el('prem').textContent='~$'+lo+' – $'+hi+'/mo';
-    el('ccta').textContent='Get an exact quote for '+fmt(cov)+' →';
-    el('lInc').textContent=fmt(cInc);el('lDebt').textContent=fmt(d);el('lDep').textContent=fmt(cDep);
-    el('sInc').style.width=(cov?cInc/cov*100:0)+'%';
-    el('sDebt').style.width=(cov?d/cov*100:0)+'%';
-    el('sDep').style.width=(cov?cDep/cov*100:0)+'%';
+/* CALCULATOR - standalone, no external dependencies */
+document.addEventListener('DOMContentLoaded', function() {
+  var incEl = document.getElementById('inc');
+  var debtEl = document.getElementById('debt');
+  var kidsEl = document.getElementById('kids');
+  var incOutEl = document.getElementById('incOut');
+  var depOutEl = document.getElementById('depOut');
+  var depMinusEl = document.getElementById('depMinus');
+  var depPlusEl = document.getElementById('depPlus');
+  var covEl = document.getElementById('cov');
+  var premEl = document.getElementById('prem');
+  var cctaEl = document.getElementById('ccta');
+  var lIncEl = document.getElementById('lInc');
+  var lDebtEl = document.getElementById('lDebt');
+  var lDepEl = document.getElementById('lDep');
+  var sIncEl = document.getElementById('sInc');
+  var sDebtEl = document.getElementById('sDebt');
+  var sDepEl = document.getElementById('sDep');
+
+  if (!incEl) { console.error('CALC ERROR: #inc not found'); return; }
+
+  var deps = 2;
+  var term = 20;
+  var mult = { 10: 0.7, 15: 0.85, 20: 1, 25: 1.2, 30: 1.4 };
+
+  function fmt(n) {
+    return '$' + Math.round(n).toLocaleString('en-US');
   }
-  incEl.addEventListener('input',calc);
-  debtEl.addEventListener('input',calc);
-  debtEl.addEventListener('focus',function(){this.select()});
-  debtEl.addEventListener('blur',function(){var v=parseD(this.value);this.value=fmt(v)});
-  el('depMinus').addEventListener('click',function(){deps=Math.max(0,deps-1);el('depOut').textContent=deps;kidIcons();calc()});
-  el('depPlus').addEventListener('click',function(){deps=Math.min(8,deps+1);el('depOut').textContent=deps;kidIcons();calc()});
-  document.querySelectorAll('#terms .pill').forEach(function(p){
-    p.addEventListener('click',function(){
-      term=+p.getAttribute('data-term');
-      document.querySelectorAll('#terms .pill').forEach(function(q){var on=q===p;q.classList.toggle('active',on);q.setAttribute('aria-checked',on)});
+
+  function parseD(v) {
+    return parseInt(String(v).replace(/[^0-9]/g, ''), 10) || 0;
+  }
+
+  function kidIcons() {
+    kidsEl.innerHTML = '';
+    for (var i = 0; i < deps; i++) {
+      kidsEl.insertAdjacentHTML('beforeend', '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="4"/><path d="M4 22c0-5 3.6-8 8-8s8 3 8 8z"/></svg>');
+    }
+  }
+
+  function calc() {
+    var income = +incEl.value;
+    var d = parseD(debtEl.value);
+    incEl.style.setProperty('--p', ((income - 20000) / 480000 * 100) + '%');
+    if (incOutEl) incOutEl.textContent = fmt(income);
+    var cInc = income * term;
+    var cDep = 50000 * deps;
+    var cov = cInc + d + cDep;
+    var m = mult[term] || 1;
+    var lo = Math.round(cov / 1e6 * 28 * m);
+    var hi = Math.round(cov / 1e6 * 52 * m);
+    if (covEl) covEl.textContent = fmt(cov);
+    if (premEl) premEl.textContent = '~$' + lo + ' \u2013 $' + hi + '/mo';
+    if (cctaEl) cctaEl.textContent = 'Get an exact quote for ' + fmt(cov) + ' \u2192';
+    if (lIncEl) lIncEl.textContent = fmt(cInc);
+    if (lDebtEl) lDebtEl.textContent = fmt(d);
+    if (lDepEl) lDepEl.textContent = fmt(cDep);
+    if (sIncEl) sIncEl.style.width = (cov ? cInc / cov * 100 : 0) + '%';
+    if (sDebtEl) sDebtEl.style.width = (cov ? d / cov * 100 : 0) + '%';
+    if (sDepEl) sDepEl.style.width = (cov ? cDep / cov * 100 : 0) + '%';
+  }
+
+  incEl.addEventListener('input', calc);
+  debtEl.addEventListener('input', calc);
+  debtEl.addEventListener('focus', function() { this.select(); });
+  debtEl.addEventListener('blur', function() { this.value = fmt(parseD(this.value)); });
+
+  depMinusEl.addEventListener('click', function() {
+    deps = Math.max(0, deps - 1);
+    depOutEl.textContent = deps;
+    kidIcons();
+    calc();
+  });
+
+  depPlusEl.addEventListener('click', function() {
+    deps = Math.min(8, deps + 1);
+    depOutEl.textContent = deps;
+    kidIcons();
+    calc();
+  });
+
+  document.querySelectorAll('#terms .pill').forEach(function(p) {
+    p.addEventListener('click', function() {
+      term = +p.getAttribute('data-term');
+      document.querySelectorAll('#terms .pill').forEach(function(q) {
+        var on = q === p;
+        q.classList.toggle('active', on);
+        q.setAttribute('aria-checked', on);
+      });
       calc();
     });
   });
-  kidIcons();calc();
-})();
+
+  kidIcons();
+  calc();
+});
+</script>
 </body>
 </html>
