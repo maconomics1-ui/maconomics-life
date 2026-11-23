@@ -1,0 +1,49 @@
+<!-- ═══════════════════════════════════════
+     QUOTE WIDGET
+═══════════════════════════════════════ -->
+<section id="quote" class="quote-section">
+  <div class="section-header animate-on-scroll">
+    <span class="section-tag section-tag-gold">Get Your Rate</span>
+    <h2>See Your Rate in 60 Seconds</h2>
+    <p>No spam. No sales calls. Just your real number.</p>
+  </div>
+  <div class="quote-card animate-on-scroll">
+    <div class="quote-card-title">Quick Quote</div>
+    <p class="quote-card-sub">Powered by real carrier rates</p>
+    <iframe
+      src="https://easylifeinsurance.com/?cid=AHD&entityId=24051236"
+      class="quote-iframe"
+      scrolling="no"
+      title="Get a Life Insurance Quote"
+      loading="lazy">
+    </iframe>
+    <script>
+      var quoteIframe = document.querySelector('.quote-iframe');
+      if (quoteIframe) {
+        quoteIframe.style.height = '580px';
+        var expanded = false;
+        var expandCheck = setInterval(function() {
+          try {
+            var innerHeight = quoteIframe.contentWindow.document.body.scrollHeight;
+            if (innerHeight > 700 && !expanded) {
+              expanded = true;
+              quoteIframe.style.transition = 'height 0.5s ease';
+              quoteIframe.style.height = innerHeight + 'px';
+              clearInterval(expandCheck);
+            }
+          } catch(e) {}
+        }, 500);
+        quoteIframe.addEventListener('mouseenter', function() {
+          setTimeout(function() {
+            if (!expanded) {
+              expanded = true;
+              quoteIframe.style.transition = 'height 0.8s ease';
+              quoteIframe.style.height = '1400px';
+            }
+          }, 25000);
+        });
+      }
+    </script>
+    <p class="quote-privacy">&#128274; Your information is secure and never sold.<br>Ross Mac — Licensed Life Insurance Agent &middot; License #22158842</p>
+  </div>
+</section>
